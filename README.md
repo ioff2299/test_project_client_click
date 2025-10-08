@@ -1,61 +1,148 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🖱️ Click Tracker System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
 
-## About Laravel
+## 📂 Структура проекта
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+            app/
+            ├── Http/
+            │    ├── Controllers/
+            │    │    ├── Api/ClickReceiverController.php
+            │    │    └── Admin/SiteController.php
+            │    └── Requests/
+            ├── Models/
+            │    ├── Site.php
+            │    └── Click.php
+            ├── Repositories/
+            │    ├── SiteRepository.php
+            │    └── ClickRepository.php
+            └── Services/
+                  ├── SiteService.php
+                  └── ClickService.php
+            database/
+                  └── migrations/
+                  ├── 2025_01_01_000000_create_sites_table.php
+                  └── 2025_01_01_000001_create_clicks_table.php
+            resources/
+            └── views/
+                └── admin/
+                   └── sites/
+                    ├── index.blade.php
+                    ├── create.blade.php
+                    └── view.blade.php
+            routes/
+            └── web.php
+ 
+ ---
+ 
+ ## 🧩 Компоненты
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### click-tracker.js
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Скрипт, который подключается на отслеживаемый сайт.  
+Он собирает данные о кликах и отправляет их на серверное API.
 
-## Learning Laravel
+#### Основная логика:
+- Проверяет наличие **токена сайта**
+- Отслеживает клики по документу
+- Собирает координаты (абсолютные и относительные)
+- Определяет **целевой элемент** (тег и классы)
+- Формирует `payload` с мета-информацией
+- Отправляет данные на API (`/api/clicks`)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+#### Собираемые данные:
+- Координаты (`page_x`, `page_y`, `pct_x`, `pct_y`, `vp_x`, `vp_y`)
+- Размеры области просмотра (`viewport_width`, `viewport_height`)
+- Целевой элемент (`target`)
+- URL страницы (`url`)
+- Временная метка (`clicked_at`)
+- Информация о браузере (`user_agent`)
+- Токен сайта (`site_token`)
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### ClickReceiverController
 
-## Laravel Sponsors
+Отвечает за приём и валидацию данных кликов с фронтенда.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+#### Функции:
+**Валидация**
+- Проверяет обязательные поля: `site_token`, `url`, координаты
+- Валидирует типы данных (строки, URL, дата, числа)
 
-### Premium Partners
+**Обработка**
+- Принимает весь `payload` от трекера
+- Передаёт данные в сервисный слой `ClickService`
+- Формирует корректный ответ в зависимости от результата
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+**Ответы API**
+- Успех: `201 Created` с `{ ok: true }`
+- Ошибка: `403 Forbidden` при невалидном токене
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Модель Click
 
-## Code of Conduct
+Модель, описывающая структуру данных о кликах.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+#### Основные поля:
+- `site_id` — связь с сайтом
+- `url` — адрес страницы
+- `clicked_at` — временная метка (обрабатывается как Carbon-дата)
 
-## Security Vulnerabilities
+#### Координаты:
+- `page_x`, `page_y` — абсолютные координаты на странице  
+- `pct_x`, `pct_y` — относительные координаты в процентах  
+- `vp_x`, `vp_y` — координаты относительно viewport  
+- `viewport_width`, `viewport_height` — размеры области просмотра
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#### Дополнительная информация:
+- `target` — целевой элемент (тег и классы)
+- `user_agent` — браузер пользователя
 
-## License
+#### Особенности:
+- Использует `$fillable` для массового присвоения
+- Имеет связь `belongsTo(Site::class)`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+### SiteController
+
+Контроллер для управления сайтами и просмотра статистики.
+
+#### Основные функции:
+- **index()** — список всех сайтов  
+- **create()** — форма создания сайта  
+- **store()** — валидация и создание нового сайта  
+- **view()** — просмотр кликов по сайту с фильтрацией по датам
+
+#### Особенности:
+- Использует сервисы `SiteService` и `ClickService`
+- Форматирует даты через `Carbon`
+- Возвращает данные в JSON для отображения тепловой карты
+
+---
+
+### Модель Site
+
+Хранит данные о зарегистрированных сайтах.
+
+#### Основные поля:
+- `name` — название сайта  
+- `domain` — домен сайта  
+- `token` — уникальный токен для идентификации  
+
+#### Автогенерация токена:
+- В `boot()` автоматически создаётся 40-символьный токен  
+  (`Str::random(40)`)
+
+#### Связи:
+- `hasMany(Click::class)` — один сайт может иметь много кликов
+
+#### Безопасность:
+- `$fillable` для безопасного массового присвоения
+- Токен генерируется автоматически, не зависит от ввода пользователя
+
+---
+
+ 
