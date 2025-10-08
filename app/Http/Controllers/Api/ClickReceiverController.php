@@ -14,39 +14,21 @@ class ClickReceiverController extends Controller
     {
         $data = $request->all();
 
-        // Если передан массив кликов
-        if (isset($data[0]) && is_array($data[0])) {
-            foreach ($data as $clickData) {
-                $validated = validator($clickData, [
-                    'site_token' => 'required|string',
-                    'url' => 'required|url',
-                    'timestamp' => 'nullable|date',
-                    'page_x' => 'required|numeric',
-                    'page_y' => 'required|numeric',
-                    'pct_x' => 'required|numeric',
-                    'pct_y' => 'required|numeric',
-                ])->validate();
+        foreach ($data as $clickData) {
+            $validated = validator($clickData, [
+                'site_token' => 'required|string',
+                'url' => 'required|url',
+                'timestamp' => 'nullable|date',
+                'page_x' => 'required|numeric',
+                'page_y' => 'required|numeric',
+                'pct_x' => 'required|numeric',
+                'pct_y' => 'required|numeric',
+            ])->validate();
 
-                $this->clicks->capture(array_merge($validated, $clickData));
-            }
-
-            return response()->json(['ok' => true, 'count' => count($data)], 201);
+            $this->clicks->capture(array_merge($validated, $clickData));
         }
 
-        // Если пришёл один клик
-        $validated = $request->validate([
-            'site_token' => 'required|string',
-            'url' => 'required|url',
-            'timestamp' => 'nullable|date',
-            'page_x' => 'required|numeric',
-            'page_y' => 'required|numeric',
-            'pct_x' => 'required|numeric',
-            'pct_y' => 'required|numeric',
-        ]);
-
-        $this->clicks->capture(array_merge($validated, $request->all()));
-
-        return response()->json(['ok' => true], 201);
+        return response()->json(['ok' => true, 'count' => count($data)], 201);
     }
 
 }
