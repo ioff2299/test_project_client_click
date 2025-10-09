@@ -8,7 +8,6 @@
     const SITE_TOKEN = window.CLICKMAP_SITE_TOKEN;
     const clickBuffer = [];
     let sent = false;
-
     function formatDateForMySQL(date) {
         const pad = (n) => n.toString().padStart(2, '0');
         return (
