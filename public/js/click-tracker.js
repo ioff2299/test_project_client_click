@@ -3,7 +3,6 @@
         console.warn('[Clickmap] Не указан токен сайта (window.CLICKMAP_SITE_TOKEN)');
         return;
     }
-
     const API_URL = window.CLICKMAP_API_URL;
     const SITE_TOKEN = window.CLICKMAP_SITE_TOKEN;
     const clickBuffer = [];
