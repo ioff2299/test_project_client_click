@@ -19,7 +19,6 @@
             pad(date.getSeconds())
         );
     }
-
     document.addEventListener('click', function (e) {
         const now = formatDateForMySQL(new Date());
 
